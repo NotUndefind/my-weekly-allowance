@@ -4,3 +4,7 @@
 
 #Test
 /coverage
+
+#Claude
+/.claude/
+CLAUDE.md
