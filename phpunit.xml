@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="vendor/autoload.php" colors="true">
+
+    <!-- Configuration de la couverture -->
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </source>
+
+    <!-- Suites de tests -->
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory suffix=".php">tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <!-- Options diverses -->
+    <php>
+        <!-- Désactivation des warnings stricts sur Herd Lite pour PCOV -->
+        <ini name="error_reporting" value="E_ALL &amp; ~E_WARNING"/>
+    </php>
+</phpunit>
