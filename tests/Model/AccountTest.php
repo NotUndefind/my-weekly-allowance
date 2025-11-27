@@ -390,247 +390,143 @@ class AccountTest extends TestCase {
     }
 
     // ========================================
-    // Tests pour deposit() et recordExpense()
+    // Tests pour addToBalance()
     // ========================================
 
-    public function testDepositPositiveAmount(): void {
-        $account = new Account($this->validTeenagerId, 100, 20);
-        $account->deposit(10);
+    /**
+     * Test : Ajouter un montant positif à la balance
+     */
+    public function testAddToBalanceWithPositiveAmount(): void {
+        $account = new Account($this->validTeenagerId, 100);
+        $account->addToBalance(50);
 
-        $this->assertEquals(110, $account->getBalance());
-    }
-
-    public function testDepositNegativeAmountThrowsException(): void {
-        $account = new Account($this->validTeenagerId, 100, 20);
-
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage("Le montant du dépôt doit être positif");
-
-        $account->deposit(-10);
+        $this->assertEquals(150, $account->getBalance());
     }
 
     /**
-     * Test : Déposer un montant décimal
+     * Test : Ajouter un montant décimal
      */
-    public function testDepositDecimalAmount(): void {
+    public function testAddToBalanceWithDecimalAmount(): void {
         $account = new Account($this->validTeenagerId, 100);
-        $result = $account->deposit(25.50);
+        $account->addToBalance(25.50);
 
-        $this->assertTrue($result);
         $this->assertEquals(125.50, $account->getBalance());
     }
 
     /**
-     * Test : Déposer 0 lève une exception
+     * Test : Ajouter un montant zéro lève une exception
      */
-    public function testDepositZeroAmountThrowsException(): void {
+    public function testAddToBalanceWithZeroThrowsException(): void {
         $account = new Account($this->validTeenagerId, 100);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage("Le montant du dépôt doit être positif");
+        $this->expectExceptionMessage("Le montant doit être positif");
 
-        $account->deposit(0);
+        $account->addToBalance(0);
+    }
+
+    /**
+     * Test : Ajouter un montant négatif lève une exception
+     */
+    public function testAddToBalanceWithNegativeThrowsException(): void {
+        $account = new Account($this->validTeenagerId, 100);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Le montant doit être positif");
+
+        $account->addToBalance(-10);
     }
 
     // ========================================
-    // Tests pour recordExpense()
+    // Tests pour subtractFromBalance()
     // ========================================
 
     /**
-     * Test : Dépense < Solde → acceptée, solde mis à jour
+     * Test : Soustraire un montant inférieur au solde
      */
-    public function testRecordExpenseLessThanBalance(): void {
+    public function testSubtractFromBalanceSuccess(): void {
         $account = new Account($this->validTeenagerId, 100);
-        $result = $account->recordExpense(30, "Cinéma");
+        $result = $account->subtractFromBalance(50);
 
         $this->assertTrue($result);
-        $this->assertEquals(70, $account->getBalance());
-    }
-
-    /**
-     * Test : Dépense > Solde → refusée, solde inchangé
-     */
-    public function testRecordExpenseGreaterThanBalance(): void {
-        $account = new Account($this->validTeenagerId, 50);
-        $result = $account->recordExpense(100, "Console");
-
-        $this->assertFalse($result);
         $this->assertEquals(50, $account->getBalance());
     }
 
     /**
-     * Test : Dépense = Solde → acceptée, solde = 0
+     * Test : Soustraire un montant supérieur au solde → refusé
      */
-    public function testRecordExpenseEqualToBalance(): void {
-        $account = new Account($this->validTeenagerId, 75);
-        $result = $account->recordExpense(75, "Baskets");
+    public function testSubtractFromBalanceInsufficientFunds(): void {
+        $account = new Account($this->validTeenagerId, 100);
+        $result = $account->subtractFromBalance(150);
+
+        $this->assertFalse($result);
+        $this->assertEquals(100, $account->getBalance());
+    }
+
+    /**
+     * Test : Soustraire exactement le solde
+     */
+    public function testSubtractFromBalanceExactAmount(): void {
+        $account = new Account($this->validTeenagerId, 100);
+        $result = $account->subtractFromBalance(100);
 
         $this->assertTrue($result);
         $this->assertEquals(0, $account->getBalance());
     }
 
     /**
-     * Test : Dépense avec montant 0 → exception
+     * Test : Soustraire un montant décimal
      */
-    public function testRecordExpenseWithZeroAmountThrowsException(): void {
+    public function testSubtractFromBalanceWithDecimalAmount(): void {
+        $account = new Account($this->validTeenagerId, 100);
+        $result = $account->subtractFromBalance(25.75);
+
+        $this->assertTrue($result);
+        $this->assertEquals(74.25, $account->getBalance());
+    }
+
+    /**
+     * Test : Soustraire zéro lève une exception
+     */
+    public function testSubtractFromBalanceWithZeroThrowsException(): void {
         $account = new Account($this->validTeenagerId, 100);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage("Le montant de la dépense doit être positif");
+        $this->expectExceptionMessage("Le montant doit être positif");
 
-        $account->recordExpense(0, "Test");
+        $account->subtractFromBalance(0);
     }
 
     /**
-     * Test : Dépense avec montant négatif → exception
+     * Test : Soustraire un montant négatif lève une exception
      */
-    public function testRecordExpenseWithNegativeAmountThrowsException(): void {
+    public function testSubtractFromBalanceWithNegativeThrowsException(): void {
         $account = new Account($this->validTeenagerId, 100);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage("Le montant de la dépense doit être positif");
+        $this->expectExceptionMessage("Le montant doit être positif");
 
-        $account->recordExpense(-20, "Test");
-    }
-
-    /**
-     * Test : Dépense avec description null → acceptée
-     */
-    public function testRecordExpenseWithNullDescription(): void {
-        $account = new Account($this->validTeenagerId, 100);
-        $result = $account->recordExpense(25, null);
-
-        $this->assertTrue($result);
-        $this->assertEquals(75, $account->getBalance());
-    }
-
-    /**
-     * Test : Dépense avec description vide → acceptée
-     */
-    public function testRecordExpenseWithEmptyDescription(): void {
-        $account = new Account($this->validTeenagerId, 100);
-        $result = $account->recordExpense(25, "");
-
-        $this->assertTrue($result);
-        $this->assertEquals(75, $account->getBalance());
-    }
-
-    /**
-     * Test : Dépense avec description valide → acceptée
-     */
-    public function testRecordExpenseWithValidDescription(): void {
-        $account = new Account($this->validTeenagerId, 100);
-        $result = $account->recordExpense(25, "Livre de PHP");
-
-        $this->assertTrue($result);
-        $this->assertEquals(75, $account->getBalance());
-    }
-
-    /**
-     * Test : Dépense décimale inférieure au solde
-     */
-    public function testRecordExpenseWithDecimalAmount(): void {
-        $account = new Account($this->validTeenagerId, 100);
-        $result = $account->recordExpense(15.75, "Snack");
-
-        $this->assertTrue($result);
-        $this->assertEquals(84.25, $account->getBalance());
-    }
-
-    /**
-     * Test : Dépense juste supérieure au solde → refusée
-     */
-    public function testRecordExpenseJustAboveBalance(): void {
-        $account = new Account($this->validTeenagerId, 50);
-        $result = $account->recordExpense(50.01, "Test");
-
-        $this->assertFalse($result);
-        $this->assertEquals(50, $account->getBalance());
+        $account->subtractFromBalance(-20);
     }
 
     // ========================================
-    // Tests pour applyWeeklyAllowance()
+    // Tests pour updateLastAllowanceDate()
     // ========================================
 
     /**
-     * Test : Appliquer l'allocation augmente le solde du montant configuré
+     * Test : Mettre à jour la date de dernière allocation
      */
-    public function testApplyWeeklyAllowanceIncreasesBalance(): void {
+    public function testUpdateLastAllowanceDate(): void {
         $account = new Account($this->validTeenagerId, 100);
-        $account->setWeeklyAllowance(20);
-
-        $result = $account->applyWeeklyAllowance();
-
-        $this->assertTrue($result);
-        $this->assertEquals(120, $account->getBalance());
-    }
-
-    /**
-     * Test : Appliquer l'allocation met à jour lastAllowanceDate
-     */
-    public function testApplyWeeklyAllowanceUpdatesLastAllowanceDate(): void {
-        $account = new Account($this->validTeenagerId, 100);
-        $account->setWeeklyAllowance(25);
-
         $beforeDate = new \DateTime();
-        $result = $account->applyWeeklyAllowance();
+
+        $account->updateLastAllowanceDate();
+
         $afterDate = new \DateTime();
+        $lastAllowanceDate = $account->getLastAllowanceDate();
 
-        $this->assertTrue($result);
-        $this->assertInstanceOf(\DateTime::class, $account->getLastAllowanceDate());
-        $this->assertGreaterThanOrEqual($beforeDate, $account->getLastAllowanceDate());
-        $this->assertLessThanOrEqual($afterDate, $account->getLastAllowanceDate());
-    }
-
-    /**
-     * Test : Appliquer l'allocation sur un solde à zéro
-     */
-    public function testApplyWeeklyAllowanceOnZeroBalance(): void {
-        $account = new Account($this->validTeenagerId, 0);
-        $account->setWeeklyAllowance(30);
-
-        $result = $account->applyWeeklyAllowance();
-
-        $this->assertTrue($result);
-        $this->assertEquals(30, $account->getBalance());
-    }
-
-    /**
-     * Test : Appliquer l'allocation sans allocation configurée → exception
-     */
-    public function testApplyWeeklyAllowanceWithoutConfigurationThrowsException(): void {
-        $account = new Account($this->validTeenagerId, 100);
-
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage("Aucune allocation hebdomadaire n'est configurée");
-
-        $account->applyWeeklyAllowance();
-    }
-
-    /**
-     * Test : Appliquer l'allocation plusieurs fois cumule les montants
-     */
-    public function testApplyWeeklyAllowanceMultipleTimes(): void {
-        $account = new Account($this->validTeenagerId, 100);
-        $account->setWeeklyAllowance(20);
-
-        $account->applyWeeklyAllowance();
-        $this->assertEquals(120, $account->getBalance());
-
-        $account->applyWeeklyAllowance();
-        $this->assertEquals(140, $account->getBalance());
-    }
-
-    /**
-     * Test : Appliquer l'allocation avec montant décimal
-     */
-    public function testApplyWeeklyAllowanceWithDecimalAmount(): void {
-        $account = new Account($this->validTeenagerId, 100);
-        $account->setWeeklyAllowance(15.50);
-
-        $result = $account->applyWeeklyAllowance();
-
-        $this->assertTrue($result);
-        $this->assertEquals(115.50, $account->getBalance());
+        $this->assertInstanceOf(\DateTime::class, $lastAllowanceDate);
+        $this->assertGreaterThanOrEqual($beforeDate, $lastAllowanceDate);
+        $this->assertLessThanOrEqual($afterDate, $lastAllowanceDate);
     }
 }

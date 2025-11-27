@@ -129,45 +129,7 @@ class Account
         $this->lastAllowanceDate = $date;
     }
 
-    /**
-     * Dépose de l'argent sur le compte
-     *
-     * @param float $amount Montant à déposer (doit être > 0)
-     * @return bool True si le dépôt est réussi
-     * @throws InvalidArgumentException Si le montant est <= 0
-     */
-    public function deposit(float $amount): bool
-    {
-        if ($amount <= 0) {
-            throw new InvalidArgumentException("Le montant du dépôt doit être positif");
-        }
 
-        $this->balance += $amount;
-        return true;
-    }
-
-    /**
-     * Enregistre une dépense
-     *
-     * @param float $amount Montant de la dépense (doit être > 0)
-     * @param string|null $description Description de la dépense (optionnel)
-     * @return bool True si la dépense est acceptée, False si le solde est insuffisant
-     * @throws InvalidArgumentException Si le montant est <= 0
-     */
-    public function recordExpense(float $amount, ?string $description = null): bool
-    {
-        if ($amount <= 0) {
-            throw new InvalidArgumentException("Le montant de la dépense doit être positif");
-        }
-
-        // Vérifier si le solde est suffisant
-        if ($amount > $this->balance) {
-            return false;
-        }
-
-        $this->balance -= $amount;
-        return true;
-    }
 
     /**
      * Vérifie si l'allocation hebdomadaire doit être appliquée
@@ -195,20 +157,48 @@ class Account
     }
 
     /**
-     * Applique l'allocation hebdomadaire
+     * Ajoute un montant à la balance
+     * Méthode interne utilisée par les controllers/services
      *
-     * @return bool True si l'allocation a été appliquée
-     * @throws InvalidArgumentException Si aucune allocation n'est configurée
+     * @param float $amount Montant à ajouter (doit être > 0)
+     * @throws InvalidArgumentException Si le montant est <= 0
      */
-    public function applyWeeklyAllowance(): bool
+    public function addToBalance(float $amount): void
     {
-        if ($this->weeklyAllowance === null) {
-            throw new InvalidArgumentException("Aucune allocation hebdomadaire n'est configurée");
+        if ($amount <= 0) {
+            throw new InvalidArgumentException("Le montant doit être positif");
+        }
+        $this->balance += $amount;
+    }
+
+    /**
+     * Soustrait un montant de la balance
+     * Méthode interne utilisée par les controllers/services
+     *
+     * @param float $amount Montant à soustraire (doit être > 0)
+     * @return bool True si la soustraction a réussi, False si le solde est insuffisant
+     * @throws InvalidArgumentException Si le montant est <= 0
+     */
+    public function subtractFromBalance(float $amount): bool
+    {
+        if ($amount <= 0) {
+            throw new InvalidArgumentException("Le montant doit être positif");
         }
 
-        $this->balance += $this->weeklyAllowance;
-        $this->lastAllowanceDate = new DateTime();
+        if ($amount > $this->balance) {
+            return false;
+        }
 
+        $this->balance -= $amount;
         return true;
+    }
+
+    /**
+     * Met à jour la date de dernière allocation
+     * Méthode interne utilisée par les controllers/services
+     */
+    public function updateLastAllowanceDate(): void
+    {
+        $this->lastAllowanceDate = new DateTime();
     }
 }

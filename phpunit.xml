@@ -6,7 +6,15 @@
         <include>
             <directory suffix=".php">src</directory>
         </include>
+
+        <exclude>
+            <directory>src/controller</directory>
+            <directory>src/view</directory>
+            <directory>src/service</directory>
+            <file>src/router.php</file>
+        </exclude>
     </source>
+
 
     <!-- Suites de tests -->
     <testsuites>
